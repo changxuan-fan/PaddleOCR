@@ -12,3 +12,10 @@ cython
 Pillow
 pyyaml
 requests
+astor
+httpx
+opt-einsum==3.3.0
+protobuf>=3.20.2
+decorator
+paddleocr
+b2
