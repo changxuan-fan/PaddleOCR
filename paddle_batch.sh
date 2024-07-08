@@ -3,6 +3,7 @@
 process_parent_folder() {
     local parent_input_dir=$1
     local parent_output_dir=$2
+    local detected_text_dir=$3
 
     if [[ ! -d "$parent_input_dir" ]]; then
         echo "Parent input directory '$parent_input_dir' does not exist."
@@ -10,6 +11,7 @@ process_parent_folder() {
     fi
 
     mkdir -p "$parent_output_dir"
+    mkdir -p "$detected_text_dir"
 
     # Array to store commands for each GPU
     declare -a gpu_commands
@@ -27,13 +29,15 @@ process_parent_folder() {
     for child_folder_name in $(ls "$parent_input_dir"); do
         local child_input_dir="$parent_input_dir/$child_folder_name"
         local child_output_dir="$parent_output_dir/$child_folder_name"
+        local child_text_file="$detected_text_dir/$child_folder_name.txt"
+
 
         if [[ -d "$child_input_dir" ]]; then
             echo "Processing child folder: $child_input_dir"
 
             # Assign the command to the appropriate GPU
             gpu_index=$((child_index % num_gpus))
-            gpu_commands[$gpu_index]+="CUDA_VISIBLE_DEVICES=$gpu_index python process_images.py \"$child_input_dir\" \"$child_output_dir\"; "
+            gpu_commands[$gpu_index]+="CUDA_VISIBLE_DEVICES=$gpu_index python process_images.py \"$child_input_dir\" \"$child_output_dir\" \"$child_text_file\"; "
 
             child_index=$((child_index + 1))
         fi
@@ -61,6 +65,10 @@ main() {
                 parent_output_dir="$2"
                 shift 2
                 ;;
+            --detected_text_dir)
+                detected_text_dir="$2"
+                shift 2
+                ;;
             *)
                 echo "Unknown parameter passed: $1"
                 exit 1
@@ -73,7 +81,7 @@ main() {
         exit 1
     fi
 
-    process_parent_folder "$parent_input_dir" "$parent_output_dir"
+    process_parent_folder "$parent_input_dir" "$parent_output_dir" "$detected_text_dir"
 }
 
 main "$@"
