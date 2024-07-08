@@ -3,6 +3,8 @@ import numpy as np
 from paddleocr import PaddleOCR
 import os
 import argparse
+from tqdm import tqdm
+import logging
 
 def process_images(child_input_dir, child_output_dir):
     # Initialize PaddleOCR without angle classification and with Chinese language
@@ -11,8 +13,8 @@ def process_images(child_input_dir, child_output_dir):
     # Ensure the output directory exists
     os.makedirs(child_output_dir, exist_ok=True)
 
-    # Loop through all files in the input directory
-    for filename in os.listdir(child_input_dir):
+    # Loop through all files in the input directory with progress bar
+    for filename in tqdm(os.listdir(child_input_dir), desc=f"Processing {child_input_dir}"):
         if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp')):
             # Construct full file path
             image_path = os.path.join(child_input_dir, filename)
@@ -40,7 +42,6 @@ def process_images(child_input_dir, child_output_dir):
             # Save the result
             output_path = os.path.join(child_output_dir, filename)
             cv2.imwrite(output_path, black_image)
-            print(f"Processed image saved to {output_path}")
 
 def process_parent_folder(parent_input_dir, parent_output_dir):
     # Check if the parent input directory exists
@@ -67,4 +68,7 @@ def main():
     process_parent_folder(args.parent_input_dir, args.parent_output_dir)
 
 if __name__ == "__main__":
+    # Suppress specific debug prints from paddleocr
+    logging.getLogger('ppocr').setLevel(logging.ERROR)
+    
     main()
